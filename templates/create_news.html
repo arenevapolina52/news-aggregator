@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Добавить новость</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            color: #2d3748;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 0;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            margin-bottom: 40px;
+        }
+
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: #4a5568;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-link:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .form-card {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .form-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+
+        .form-subtitle {
+            color: #718096;
+            font-size: 1.1rem;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .form-input, .form-textarea, .form-select {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .form-input:focus, .form-textarea:focus, .form-select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 150px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-full {
+            width: 100%;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            display: none;
+        }
+
+        .alert-error {
+            background: #fed7d7;
+            color: #c53030;
+            border: 1px solid #feb2b2;
+        }
+
+        .alert-success {
+            background: #c6f6d5;
+            color: #276749;
+            border: 1px solid #9ae6b4;
+        }
+
+        @media (max-width: 768px) {
+            .nav-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .form-card {
+                padding: 30px 20px;
+            }
+            
+            .form-title {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <a href="/" class="logo">
+                    <i class="fas fa-newspaper"></i>
+                    Новостной Агрегатор
+                </a>
+                <div class="nav-links">
+                    <a href="/" class="nav-link">
+                        <i class="fas fa-home"></i>
+                        Главная
+                    </a>
+                    <a href="/news" class="nav-link">
+                        <i class="fas fa-newspaper"></i>
+                        Новости
+                    </a>
+                    <a href="/login" class="nav-link">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Войти
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="form-card">
+            <div class="form-header">
+                <h1 class="form-title">Добавить новость</h1>
+                <p class="form-subtitle">Поделитесь свежей новостью с сообществом</p>
+            </div>
+
+            <div id="alert" class="alert"></div>
+
+            <form id="newsForm">
+                <div class="form-group">
+                    <label class="form-label">Заголовок новости</label>
+                    <input type="text" id="title" class="form-input" placeholder="Введите заголовок" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Содержание</label>
+                    <textarea id="content" class="form-textarea" placeholder="Напишите содержание новости..." required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Источник</label>
+                    <input type="text" id="source" class="form-input" placeholder="Укажите источник новости" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Категория</label>
+                    <select id="category" class="form-select" required>
+                        <option value="">Выберите категорию</option>
+                        <option value="technology">💻 Технологии</option>
+                        <option value="politics">🏛️ Политика</option>
+                        <option value="sports">⚽ Спорт</option>
+                        <option value="entertainment">🎬 Развлечения</option>
+                        <option value="science">🔬 Наука</option>
+                        <option value="business">💼 Бизнес</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">URL оригинальной статьи</label>
+                    <input type="url" id="url" class="form-input" placeholder="https://example.com/news/1" required>
+                </div>
+                
+                <button type="submit" class="btn btn-full">
+                    <i class="fas fa-plus"></i>
+                    Опубликовать новость
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        function showAlert(message, type = 'error') {
+            const alert = document.getElementById('alert');
+            alert.textContent = message;
+            alert.className = `alert alert-${type}`;
+            alert.style.display = 'block';
+            
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+
+        document.getElementById('newsForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const token = localStorage.getItem('token');
+            if (!token) {
+                showAlert('Для добавления новости необходимо авторизоваться');
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 2000);
+                return;
+            }
+            
+            const submitBtn = this.querySelector('button');
+            const originalText = submitBtn.innerHTML;
+            
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Публикация...';
+            submitBtn.disabled = true;
+            
+            const data = {
+                title: document.getElementById('title').value,
+                content: document.getElementById('content').value,
+                source: document.getElementById('source').value,
+                category: document.getElementById('category').value,
+                url: document.getElementById('url').value,
+                published_at: new Date().toISOString()
+            };
+            
+            try {
+                const response = await fetch('/news/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
+                    showAlert('Новость успешно добавлена! Перенаправление...', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/news';
+                    }, 1500);
+                } else {
+                    const error = await response.json();
+                    showAlert(error.detail || 'Ошибка добавления новости');
+                }
+            } catch (error) {
+                showAlert('Ошибка сети. Проверьте подключение');
+            } finally {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                showAlert('Для добавления новости необходимо авторизоваться');
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 2000);
+            }
+        });
+    </script>
+</body>
+</html>

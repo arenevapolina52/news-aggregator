@@ -1,5 +1,6 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import database as db
@@ -9,18 +10,15 @@ from datetime import datetime
 
 app = FastAPI(
     title="News Aggregator API",
-    description="API для агрегации новостей с парсингом, категоризацией и персонализацией",
+    description="API для агрегации новостей",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc"
 )
 
-def get_news_articles(
-    db_session: Session, 
-    skip: int = 0, 
-    limit: int = 100,
-    category: Optional[str] = None
-):
+templates = Jinja2Templates(directory="templates")
+
+def get_news_articles(db_session: Session, skip: int = 0, limit: int = 100, category: Optional[str] = None):
     query = db_session.query(db.NewsArticle)
     if category:
         query = query.filter(db.NewsArticle.category == category)
@@ -46,11 +44,7 @@ def create_news_article(db_session: Session, article: sch.NewsArticleCreate):
     db_session.refresh(db_article)
     return db_article
 
-def update_news_article(
-    db_session: Session, 
-    article_id: int, 
-    article_update: sch.NewsArticleUpdate
-):
+def update_news_article(db_session: Session, article_id: int, article_update: sch.NewsArticleUpdate):
     db_article = get_news_article(db_session, article_id)
     if not db_article:
         return None
@@ -72,7 +66,17 @@ def delete_news_article(db_session: Session, article_id: int):
     db_session.commit()
     return db_article
 
-@app.post("/register", response_model=sch.User, summary="Регистрация пользователя")
+async def get_current_user_from_request(request: Request, db_session: Session = Depends(db.get_db)):
+    token = request.cookies.get("access_token")
+    if token:
+        try:
+            user = await auth.get_current_user(token, db_session)
+            return user
+        except:
+            return None
+    return None
+
+@app.post("/register", response_model=sch.User)
 def register(user: sch.UserCreate, db_session: Session = Depends(db.get_db)):
     if auth.get_user_by_email(db_session, user.email):
         raise HTTPException(
@@ -88,7 +92,7 @@ def register(user: sch.UserCreate, db_session: Session = Depends(db.get_db)):
     
     return auth.create_user(db_session, user.dict())
 
-@app.post("/login", response_model=sch.Token, summary="Аутентификация пользователя")
+@app.post("/login", response_model=sch.Token)
 def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db_session: Session = Depends(db.get_db)
@@ -104,28 +108,50 @@ def login(
     access_token = auth.create_access_token(data={"sub": user.username})
     return {"access_token": access_token, "token_type": "bearer"}
 
-@app.get("/", summary="Главная страница")
-def read_root():
-    return {"message": "Welcome to News Aggregator API"}
+@app.get("/", response_class=sch.HTMLResponse)
+async def read_root(request: Request, db_session: Session = Depends(db.get_db)):
+    current_user = await get_current_user_from_request(request, db_session)
+    latest_news = get_news_articles(db_session, limit=6)
+    return templates.TemplateResponse(
+        "index.html",
+        {"request": request, "current_user": current_user, "latest_news": latest_news}
+    )
 
-@app.get("/news/", response_model=List[sch.NewsArticle], summary="Получить все новости")
-def read_articles(
-    skip: int = 0,
-    limit: int = 100,
-    category: Optional[str] = None,
-    db_session: Session = Depends(db.get_db)
-):
-    articles = get_news_articles(db_session, skip=skip, limit=limit, category=category)
-    return articles
+@app.get("/login", response_class=sch.HTMLResponse)
+async def login_page(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
 
-@app.get("/news/{article_id}", response_model=sch.NewsArticle, summary="Получить новость по ID")
+@app.get("/register", response_class=sch.HTMLResponse)
+async def register_page(request: Request):
+    return templates.TemplateResponse("register.html", {"request": request})
+
+@app.get("/news", response_class=sch.HTMLResponse)
+async def news_page(request: Request, db_session: Session = Depends(db.get_db)):
+    current_user = await get_current_user_from_request(request, db_session)
+    articles = get_news_articles(db_session)
+    return templates.TemplateResponse(
+        "news.html",
+        {"request": request, "current_user": current_user, "articles": articles}
+    )
+
+@app.get("/create-news", response_class=sch.HTMLResponse)
+async def create_news_page(request: Request, db_session: Session = Depends(db.get_db)):
+    current_user = await get_current_user_from_request(request, db_session)
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    return templates.TemplateResponse(
+        "create_news.html",
+        {"request": request, "current_user": current_user}
+    )
+
+@app.get("/news/{article_id}", response_model=sch.NewsArticle)
 def read_article(article_id: int, db_session: Session = Depends(db.get_db)):
     db_article = get_news_article(db_session, article_id)
     if db_article is None:
         raise HTTPException(status_code=404, detail="Article not found")
     return db_article
 
-@app.post("/news/", response_model=sch.NewsArticle, summary="Создать новую статью")
+@app.post("/news/", response_model=sch.NewsArticle)
 def create_article(
     article: sch.NewsArticleCreate,
     db_session: Session = Depends(db.get_db),
@@ -133,7 +159,7 @@ def create_article(
 ):
     return create_news_article(db_session, article)
 
-@app.put("/news/{article_id}", response_model=sch.NewsArticle, summary="Обновить статью")
+@app.put("/news/{article_id}", response_model=sch.NewsArticle)
 def update_article(
     article_id: int,
     article_update: sch.NewsArticleUpdate,
@@ -145,7 +171,7 @@ def update_article(
         raise HTTPException(status_code=404, detail="Article not found")
     return db_article
 
-@app.delete("/news/{article_id}", summary="Удалить статью")
+@app.delete("/news/{article_id}")
 def delete_article(
     article_id: int,
     db_session: Session = Depends(db.get_db),
@@ -156,7 +182,7 @@ def delete_article(
         raise HTTPException(status_code=404, detail="Article not found")
     return {"message": "Article deleted successfully"}
 
-@app.get("/health", summary="Проверка здоровья API")
+@app.get("/health")
 def health_check(db_session: Session = Depends(db.get_db)):
     try:
         db_session.execute("SELECT 1")
