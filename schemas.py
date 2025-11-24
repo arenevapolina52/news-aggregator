@@ -1,31 +1,26 @@
-from pydantic import BaseModel, EmailStr, HttpUrl
+from pydantic import BaseModel, validator
 from datetime import datetime
 from typing import Optional
 import re
 
-class UserCreate(BaseModel):
-    email: EmailStr
+class UserBase(BaseModel):
+    email: str
     username: str
+
+class UserCreate(UserBase):
     password: str
     
     @validator('username')
     def username_alphanumeric(cls, v):
         if not re.match('^[a-zA-Z0-9_]+$', v):
-            raise ValueError('Имя пользователя должно содержать только буквы, цифры и подчеркивания')
+            raise ValueError('Username must be alphanumeric')
         return v
     
     @validator('password')
-    def password_strength(cls, v):
+    def password_length(cls, v):
         if len(v) < 6:
-            raise ValueError('Пароль должен содержать минимум 6 символов')
+            raise ValueError('Password must be at least 6 characters')
         return v
-
-class UserBase(BaseModel):
-    email: EmailStr
-    username: str
-
-class UserCreate(UserBase):
-    password: str
 
 class User(UserBase):
     id: int
@@ -38,9 +33,6 @@ class User(UserBase):
 class Token(BaseModel):
     access_token: str
     token_type: str
-
-class TokenData(BaseModel):
-    username: Optional[str] = None
 
 class NewsArticleBase(BaseModel):
     title: str

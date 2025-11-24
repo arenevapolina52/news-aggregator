@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import database as db
@@ -108,7 +109,7 @@ def login(
     access_token = auth.create_access_token(data={"sub": user.username})
     return {"access_token": access_token, "token_type": "bearer"}
 
-@app.get("/", response_class=sch.HTMLResponse)
+@app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request, db_session: Session = Depends(db.get_db)):
     current_user = await get_current_user_from_request(request, db_session)
     latest_news = get_news_articles(db_session, limit=6)
@@ -117,15 +118,15 @@ async def read_root(request: Request, db_session: Session = Depends(db.get_db)):
         {"request": request, "current_user": current_user, "latest_news": latest_news}
     )
 
-@app.get("/login", response_class=sch.HTMLResponse)
+@app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
-@app.get("/register", response_class=sch.HTMLResponse)
+@app.get("/register", response_class=HTMLResponse)
 async def register_page(request: Request):
     return templates.TemplateResponse("register.html", {"request": request})
 
-@app.get("/news", response_class=sch.HTMLResponse)
+@app.get("/news", response_class=HTMLResponse)
 async def news_page(request: Request, db_session: Session = Depends(db.get_db)):
     current_user = await get_current_user_from_request(request, db_session)
     articles = get_news_articles(db_session)
@@ -134,7 +135,7 @@ async def news_page(request: Request, db_session: Session = Depends(db.get_db)):
         {"request": request, "current_user": current_user, "articles": articles}
     )
 
-@app.get("/create-news", response_class=sch.HTMLResponse)
+@app.get("/create-news", response_class=HTMLResponse)
 async def create_news_page(request: Request, db_session: Session = Depends(db.get_db)):
     current_user = await get_current_user_from_request(request, db_session)
     if not current_user:
@@ -196,14 +197,6 @@ def health_check(db_session: Session = Depends(db.get_db)):
             status_code=500, 
             detail=f"Database connection error: {str(e)}"
         )
-
-
-@app.exception_handler(404)
-async def not_found_exception_handler(request: Request, exc: HTTPException):
-    return JSONResponse(
-        status_code=404,
-        content={"detail": "Ресурс не найден"}
-    )
 
 if __name__ == "__main__":
     import uvicorn
