@@ -197,6 +197,14 @@ def health_check(db_session: Session = Depends(db.get_db)):
             detail=f"Database connection error: {str(e)}"
         )
 
+
+@app.exception_handler(404)
+async def not_found_exception_handler(request: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=404,
+        content={"detail": "Ресурс не найден"}
+    )
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
