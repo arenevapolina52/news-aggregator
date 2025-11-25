@@ -8,6 +8,7 @@ import database as db
 import schemas as sch
 import auth
 from datetime import datetime
+from parser import NewsParser, NEWS_SOURCES
 
 app = FastAPI(
     title="News Aggregator API",
@@ -182,6 +183,87 @@ def delete_article(
     if db_article is None:
         raise HTTPException(status_code=404, detail="Article not found")
     return {"message": "Article deleted successfully"}
+
+@app.get("/api/news")
+async def api_get_news(
+    skip: int = 0,
+    limit: int = 100,
+    category: Optional[str] = None,
+    db_session: Session = Depends(db.get_db)
+):
+    articles = get_news_articles(db_session, skip=skip, limit=limit, category=category)
+    return [
+        {
+            "id": article.id,
+            "title": article.title,
+            "content": article.content,
+            "source": article.source,
+            "category": article.category,
+            "url": article.url,
+            "published_at": article.published_at.isoformat() if article.published_at else None,
+            "created_at": article.created_at.isoformat() if article.created_at else None
+        }
+        for article in articles
+    ]
+
+@app.post("/api/parse-news")
+async def parse_news_from_sources(db_session: Session = Depends(db.get_db)):
+    parser = NewsParser()
+    all_articles = []
+    
+    for source in NEWS_SOURCES:
+        print(f"Парсим источник: {source}")
+        articles = parser.parse_rss_feed(source)
+        all_articles.extend(articles)
+        
+        for article_data in articles:
+            try:
+                existing = db_session.query(db.NewsArticle).filter(
+                    db.NewsArticle.url == article_data["url"]
+                ).first()
+                
+                if not existing:
+                    news_article = sch.NewsArticleCreate(**article_data)
+                    create_news_article(db_session, news_article)
+            except Exception as e:
+                print(f"Ошибка сохранения статьи: {e}")
+                continue
+    
+    return {"message": f"Спаршено {len(all_articles)} новостей", "articles": all_articles}
+
+@app.get("/api/personalized-news")
+async def get_personalized_news(
+    user_id: Optional[int] = None,
+    db_session: Session = Depends(db.get_db)
+):
+    parser = NewsParser()
+    all_articles = get_news_articles(db_session, limit=50)
+    
+    user_preferences = {
+        "preferred_categories": ["technology", "science"],
+        "preferred_sources": ["RSS Feed", "Lenta.ru"]
+    }
+    
+    personalized_articles = parser.personalize_news(user_preferences, all_articles)
+    
+    return {
+        "personalized_news": personalized_articles[:10],
+        "user_preferences": user_preferences
+    }
+
+@app.get("/api/categories")
+async def get_categories_stats(db_session: Session = Depends(db.get_db)):
+    articles = get_news_articles(db_session)
+    
+    categories = {}
+    for article in articles:
+        category = article.category
+        if category in categories:
+            categories[category] += 1
+        else:
+            categories[category] = 1
+    
+    return {"categories": categories}
 
 @app.get("/health")
 def health_check(db_session: Session = Depends(db.get_db)):

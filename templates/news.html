@@ -165,6 +165,8 @@
             text-decoration: none;
             font-weight: 500;
             transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
         }
 
         .btn:hover {
@@ -172,11 +174,33 @@
             transform: translateY(-2px);
         }
 
+        .btn-secondary {
+            background: #764ba2;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-outline:hover {
+            background: #667eea;
+            color: white;
+        }
+
         .loading {
             text-align: center;
             padding: 50px;
             font-size: 1.1rem;
             color: #718096;
+        }
+
+        .actions-panel {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            justify-content: center;
         }
 
         @media (max-width: 768px) {
@@ -191,6 +215,10 @@
             
             .page-title {
                 font-size: 2.5rem;
+            }
+            
+            .actions-panel {
+                flex-direction: column;
             }
         }
     </style>
@@ -229,6 +257,21 @@
         <div class="page-header">
             <h1 class="page-title">Все новости</h1>
             <p class="page-subtitle">Самые свежие материалы из разных источников</p>
+        </div>
+
+        <div class="actions-panel">
+            <button onclick="parseNews()" class="btn">
+                <i class="fas fa-sync"></i>
+                Обновить новости
+            </button>
+            <button onclick="showPersonalized()" class="btn btn-secondary">
+                <i class="fas fa-user"></i>
+                Для меня
+            </button>
+            <button onclick="showCategories()" class="btn btn-outline">
+                <i class="fas fa-chart-pie"></i>
+                Статистика
+            </button>
         </div>
 
         <div id="news-container" class="news-grid">
@@ -291,6 +334,71 @@
                         Ошибка загрузки новостей
                     </div>
                 `;
+            }
+        }
+
+        async function parseNews() {
+            try {
+                const response = await fetch('/api/parse-news', { method: 'POST' });
+                const result = await response.json();
+                alert(result.message);
+                loadNews();
+            } catch (error) {
+                alert('Ошибка обновления новостей');
+            }
+        }
+
+        async function showPersonalized() {
+            try {
+                const response = await fetch('/api/personalized-news');
+                const data = await response.json();
+                
+                const container = document.getElementById('news-container');
+                container.innerHTML = '<h3 style="text-align: center; margin-bottom: 30px; color: #2d3748;">🎯 Персонализированная лента</h3>';
+                
+                data.personalized_news.forEach(article => {
+                    const card = document.createElement('div');
+                    card.className = 'news-card';
+                    card.innerHTML = `
+                        <div class="news-header">
+                            <span class="news-category">${article.category} ⭐${article.personalization_score || 0}</span>
+                            <h3 class="news-title">${article.title}</h3>
+                            <div class="news-meta">
+                                <i class="fas fa-calendar"></i>
+                                ${new Date(article.published_at).toLocaleDateString('ru-RU')}
+                                <i class="fas fa-source" style="margin-left: 15px;"></i>
+                                ${article.source}
+                            </div>
+                        </div>
+                        <div class="news-body">
+                            <p class="news-content">${article.content}</p>
+                            <div class="news-footer">
+                                <a href="${article.url}" target="_blank" class="btn">
+                                    <i class="fas fa-external-link-alt"></i>
+                                    Читать оригинал
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (error) {
+                alert('Ошибка загрузки персонализированных новостей');
+            }
+        }
+
+        async function showCategories() {
+            try {
+                const response = await fetch('/api/categories');
+                const data = await response.json();
+                
+                let message = 'Статистика категорий:\n\n';
+                for (const [category, count] of Object.entries(data.categories)) {
+                    message += `${category}: ${count} новостей\n`;
+                }
+                alert(message);
+            } catch (error) {
+                alert('Ошибка загрузки статистики');
             }
         }
         
