@@ -70,26 +70,17 @@
 
         .form-card {
             background: white;
-            padding: 40px;
             border-radius: 20px;
+            padding: 40px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
 
-        .form-header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
         .form-title {
-            font-size: 2.5rem;
+            font-size: 2rem;
             font-weight: 700;
+            margin-bottom: 30px;
+            text-align: center;
             color: #2d3748;
-            margin-bottom: 10px;
-        }
-
-        .form-subtitle {
-            color: #718096;
-            font-size: 1.1rem;
         }
 
         .form-group {
@@ -98,8 +89,8 @@
 
         .form-label {
             display: block;
-            margin-bottom: 10px;
-            font-weight: 600;
+            margin-bottom: 8px;
+            font-weight: 500;
             color: #4a5568;
         }
 
@@ -114,21 +105,20 @@
             font-family: 'Inter', sans-serif;
         }
 
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
         .form-input:focus, .form-textarea:focus, .form-select:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
-        .form-textarea {
-            resize: vertical;
-            min-height: 150px;
-        }
-
         .btn {
             display: inline-flex;
             align-items: center;
-            justify-content: center;
             gap: 10px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -149,12 +139,13 @@
 
         .btn-full {
             width: 100%;
+            justify-content: center;
         }
 
         .alert {
-            padding: 15px 20px;
-            border-radius: 10px;
-            margin-bottom: 25px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
             display: none;
         }
 
@@ -168,21 +159,6 @@
             background: #c6f6d5;
             color: #276749;
             border: 1px solid #9ae6b4;
-        }
-
-        @media (max-width: 768px) {
-            .nav-content {
-                flex-direction: column;
-                gap: 15px;
-            }
-            
-            .form-card {
-                padding: 30px 20px;
-            }
-            
-            .form-title {
-                font-size: 2rem;
-            }
         }
     </style>
 </head>
@@ -203,9 +179,9 @@
                         <i class="fas fa-newspaper"></i>
                         Новости
                     </a>
-                    <a href="/login" class="nav-link">
-                        <i class="fas fa-sign-in-alt"></i>
-                        Войти
+                    <a href="#" onclick="logout()" class="nav-link">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Выйти
                     </a>
                 </div>
             </div>
@@ -214,50 +190,48 @@
 
     <main class="container">
         <div class="form-card">
-            <div class="form-header">
-                <h1 class="form-title">Добавить новость</h1>
-                <p class="form-subtitle">Поделитесь свежей новостью с сообществом</p>
-            </div>
-
+            <h1 class="form-title">Добавить новость</h1>
+            
             <div id="alert" class="alert"></div>
-
-            <form id="newsForm">
+            
+            <form id="createNewsForm">
                 <div class="form-group">
-                    <label class="form-label">Заголовок новости</label>
-                    <input type="text" id="title" class="form-input" placeholder="Введите заголовок" required>
+                    <label class="form-label">Заголовок *</label>
+                    <input type="text" id="title" class="form-input" placeholder="Введите заголовок новости" required>
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label">Содержание</label>
-                    <textarea id="content" class="form-textarea" placeholder="Напишите содержание новости..." required></textarea>
+                    <label class="form-label">Описание *</label>
+                    <textarea id="summary" class="form-textarea" placeholder="Введите описание новости" required></textarea>
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label">Источник</label>
-                    <input type="text" id="source" class="form-input" placeholder="Укажите источник новости" required>
+                    <label class="form-label">URL источника *</label>
+                    <input type="url" id="url" class="form-input" placeholder="https://example.com/news" required>
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label">Категория</label>
+                    <label class="form-label">Источник *</label>
+                    <input type="text" id="source" class="form-input" placeholder="Название источника" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Категория *</label>
                     <select id="category" class="form-select" required>
                         <option value="">Выберите категорию</option>
-                        <option value="technology">💻 Технологии</option>
-                        <option value="politics">🏛️ Политика</option>
-                        <option value="sports">⚽ Спорт</option>
-                        <option value="entertainment">🎬 Развлечения</option>
-                        <option value="science">🔬 Наука</option>
-                        <option value="business">💼 Бизнес</option>
+                        <option value="технологии">Технологии</option>
+                        <option value="политика">Политика</option>
+                        <option value="экономика">Экономика</option>
+                        <option value="спорт">Спорт</option>
+                        <option value="наука">Наука</option>
+                        <option value="культура">Культура</option>
+                        <option value="общее">Общее</option>
                     </select>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">URL оригинальной статьи</label>
-                    <input type="url" id="url" class="form-input" placeholder="https://example.com/news/1" required>
                 </div>
                 
                 <button type="submit" class="btn btn-full">
                     <i class="fas fa-plus"></i>
-                    Опубликовать новость
+                    Добавить новость
                 </button>
             </form>
         </div>
@@ -275,35 +249,35 @@
             }, 5000);
         }
 
-        document.getElementById('newsForm').addEventListener('submit', async function(e) {
+        document.getElementById('createNewsForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const token = localStorage.getItem('token');
             if (!token) {
-                showAlert('Для добавления новости необходимо авторизоваться');
-                setTimeout(() => {
-                    window.location.href = '/login';
-                }, 2000);
+                showAlert('Для добавления новостей необходимо войти в систему');
+                window.location.href = '/login';
                 return;
             }
             
             const submitBtn = this.querySelector('button');
             const originalText = submitBtn.innerHTML;
             
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Публикация...';
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Добавление...';
             submitBtn.disabled = true;
             
+            // ДОБАВЛЯЕМ published_at - ОБЯЗАТЕЛЬНОЕ ПОЛЕ!
             const data = {
                 title: document.getElementById('title').value,
-                content: document.getElementById('content').value,
+                summary: document.getElementById('summary').value,
+                url: document.getElementById('url').value,
                 source: document.getElementById('source').value,
                 category: document.getElementById('category').value,
-                url: document.getElementById('url').value,
-                published_at: new Date().toISOString()
+                published_at: new Date().toISOString()  // ✅ ДОБАВЛЕНО!
             };
             
             try {
-                const response = await fetch('/news/', {
+                // ИСПРАВЛЕННЫЙ URL - добавлен слеш в конце
+                const response = await fetch('/api/news/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -313,29 +287,29 @@
                 });
                 
                 if (response.ok) {
-                    showAlert('Новость успешно добавлена! Перенаправление...', 'success');
-                    setTimeout(() => {
-                        window.location.href = '/news';
-                    }, 1500);
+                    showAlert('✅ Новость успешно добавлена!', 'success');
+                    this.reset();
                 } else {
                     const error = await response.json();
-                    showAlert(error.detail || 'Ошибка добавления новости');
+                    showAlert('❌ Ошибка: ' + (error.detail || 'Неизвестная ошибка'));
                 }
             } catch (error) {
-                showAlert('Ошибка сети. Проверьте подключение');
+                showAlert('❌ Ошибка сети. Проверьте подключение');
             } finally {
                 submitBtn.innerHTML = originalText;
                 submitBtn.disabled = false;
             }
         });
 
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/';
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             const token = localStorage.getItem('token');
             if (!token) {
-                showAlert('Для добавления новости необходимо авторизоваться');
-                setTimeout(() => {
-                    window.location.href = '/login';
-                }, 2000);
+                window.location.href = '/login';
             }
         });
     </script>

@@ -23,7 +23,7 @@ class Token(BaseModel):
 
 class NewsArticleBase(BaseModel):
     title: str
-    content: str
+    summary: str  # Изменено с content на summary
     source: str
     category: str
     url: str
@@ -34,7 +34,7 @@ class NewsArticleCreate(NewsArticleBase):
 
 class NewsArticleUpdate(BaseModel):
     title: Optional[str] = None
-    content: Optional[str] = None
+    summary: Optional[str] = None  # Изменено с content на summary
     source: Optional[str] = None
     category: Optional[str] = None
     url: Optional[str] = None
@@ -42,6 +42,7 @@ class NewsArticleUpdate(BaseModel):
 
 class NewsArticle(NewsArticleBase):
     id: int
+    is_active: bool
     created_at: datetime
     
     class Config:

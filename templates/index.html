@@ -226,5 +226,37 @@
             </div>
         </section>
     </main>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const token = localStorage.getItem('token');
+        const navLinks = document.querySelector('.nav-links');
+        
+        if (token) {
+            navLinks.innerHTML = `
+                <a href="/" class="nav-link">
+                    <i class="fas fa-home"></i>
+                    Главная
+                </a>
+                <a href="/news" class="nav-link">
+                    <i class="fas fa-newspaper"></i>
+                    Новости
+                </a>
+                <a href="/create-news" class="nav-link">
+                    <i class="fas fa-plus"></i>
+                    Добавить новость
+                </a>
+                <a href="#" onclick="logout()" class="nav-link">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Выйти
+                </a>
+            `;
+        }
+    });
+    
+    function logout() {
+        localStorage.removeItem('token');
+        window.location.href = '/';
+    }
+</script>
 </body>
 </html>
