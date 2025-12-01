@@ -15,7 +15,7 @@ from contextlib import asynccontextmanager
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     models.Base.metadata.create_all(bind=db.engine)
-    print("✅ Таблицы базы данных созданы")
+    print("Таблицы базы данных созданы")
     yield
 
 app = FastAPI(
@@ -28,7 +28,6 @@ app = FastAPI(
 templates = Jinja2Templates(directory="templates")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
-# HTML страницы
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
@@ -52,7 +51,6 @@ async def news_page(request: Request, db_session: Session = Depends(db.get_db)):
 async def create_news_page(request: Request):
     return templates.TemplateResponse("create_news.html", {"request": request})
 
-# API эндпоинты
 @app.get("/api/news/", response_model=List[sch.NewsArticle], summary="Получить все новости")
 def read_news(skip: int = 0, limit: int = 100, db_session: Session = Depends(db.get_db)):
     """Получить список всех новостей с пагинацией"""
@@ -74,7 +72,7 @@ def create_news(news: sch.NewsArticleCreate, db_session: Session = Depends(db.ge
     """Создать новую новость (требуется аутентификация)"""
     db_news = models.NewsArticle(
         title=news.title,
-        summary=news.summary,  # Используем summary вместо content
+        summary=news.summary,  
         source=news.source,
         category=news.category,
         url=news.url,
@@ -93,7 +91,7 @@ def update_news(news_id: int, news: sch.NewsArticleUpdate, db_session: Session =
     if db_news is None:
         raise HTTPException(status_code=404, detail="News not found")
     
-    update_data = news.dict(exclude_unset=True)
+    update_data = news.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(db_news, field, value)
     
@@ -113,7 +111,6 @@ def delete_news(news_id: int, db_session: Session = Depends(db.get_db),
     db_session.commit()
     return {"message": "News deleted successfully"}
 
-# Аутентификация
 @app.post("/auth/register", response_model=sch.User, summary="Регистрация пользователя")
 def register(user: sch.UserCreate, db_session: Session = Depends(db.get_db)):
     """Регистрация нового пользователя в системе"""
@@ -138,10 +135,9 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db_session: Session 
     access_token = auth.create_access_token(data={"sub": user.username})
     return {"access_token": access_token, "token_type": "bearer"}
 
-# Парсинг и категоризация
 @app.post("/api/parse-news/", summary="Парсинг тестовых новостей")
 def parse_news(db_session: Session = Depends(db.get_db),
-               current_user: sch.User = Depends(auth.get_current_active_user)):
+            current_user: sch.User = Depends(auth.get_current_active_user)):
     """Парсинг тестовых новостей из предопределенных источников"""
     sample_news = [
         {
@@ -173,7 +169,7 @@ def parse_news(db_session: Session = Depends(db.get_db),
         if not existing:
             db_news = models.NewsArticle(
                 title=news_data["title"],
-                summary=news_data["summary"],  # Используем summary
+                summary=news_data["summary"], 
                 source=news_data["source"],
                 category=news_data["category"],
                 url=news_data["url"],
@@ -185,10 +181,9 @@ def parse_news(db_session: Session = Depends(db.get_db),
     db_session.commit()
     return {"message": "News parsed successfully", "count": added_count}
 
-# РЕАЛЬНЫЙ ПАРСИНГ - НОВЫЙ ЭНДПОИНТ
 @app.post("/api/parse-real-news/", summary="Парсинг реальных новостей из RSS")
 def parse_real_news(db_session: Session = Depends(db.get_db),
-                   current_user: sch.User = Depends(auth.get_current_active_user)):
+                current_user: sch.User = Depends(auth.get_current_active_user)):
     """Парсинг реальных новостей из RSS источников"""
     try:
         from parser import RealNewsParser
@@ -201,10 +196,9 @@ def parse_real_news(db_session: Session = Depends(db.get_db),
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка парсинга: {str(e)}")
 
-# ОБНОВЛЕНИЕ КАТЕГОРИЙ - НОВЫЙ ЭНДПОИНТ
 @app.post("/api/update-categories/", summary="Обновление категорий новостей")
 def update_categories(db_session: Session = Depends(db.get_db),
-                     current_user: sch.User = Depends(auth.get_current_active_user)):
+                    current_user: sch.User = Depends(auth.get_current_active_user)):
     """Автоматическое обновление категорий для существующих новостей"""
     try:
         from parser import RealNewsParser
@@ -226,15 +220,13 @@ def get_news_by_category(category: str, db_session: Session = Depends(db.get_db)
 
 @app.get("/api/personalized-news/", response_model=List[sch.NewsArticle], summary="Персонализированные новости")
 def get_personalized_news(db_session: Session = Depends(db.get_db),
-                         current_user: sch.User = Depends(auth.get_current_active_user)):
+                        current_user: sch.User = Depends(auth.get_current_active_user)):
     """Получить персонализированную ленту новостей"""
-    # Простая персонализация - возвращаем технологические новости
     return db_session.query(models.NewsArticle).filter(
         models.NewsArticle.category == "технологии",
         models.NewsArticle.is_active == True
     ).limit(10).all()
 
-# Health check
 @app.get("/api/health", summary="Проверка здоровья API")
 def health_check(db_session: Session = Depends(db.get_db)):
     """Проверка статуса API и подключения к базе данных"""
@@ -254,6 +246,7 @@ def health_check(db_session: Session = Depends(db.get_db)):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
 
 if __name__ == "__main__":
     import uvicorn

@@ -18,7 +18,7 @@ class NewsArticle(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, nullable=False)
-    summary = Column(Text)  # Это поле используется вместо content
+    summary = Column(Text)  
     url = Column(String, nullable=False)
     source = Column(String, nullable=False)
     category = Column(String)

@@ -9,7 +9,6 @@ import schemas
 from fastapi.security import OAuth2PasswordBearer
 from database import get_db
 
-# Настройки для JWT
 SECRET_KEY = "your-secret-key-here-change-in-production"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30

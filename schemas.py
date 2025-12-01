@@ -34,7 +34,7 @@ class NewsArticleCreate(NewsArticleBase):
 
 class NewsArticleUpdate(BaseModel):
     title: Optional[str] = None
-    summary: Optional[str] = None  # Изменено с content на summary
+    summary: Optional[str] = None  
     source: Optional[str] = None
     category: Optional[str] = None
     url: Optional[str] = None

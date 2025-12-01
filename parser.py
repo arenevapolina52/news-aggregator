@@ -117,7 +117,6 @@ class RealNewsParser:
     def parse_real_rss_sources(db: Session):
         """Парсинг реальных RSS лент"""
         rss_sources = [
-            # Российские источники
             {"url": "https://lenta.ru/rss/news", "source": "Lenta.ru", "category": "общее"},
             {"url": "https://www.vedomosti.ru/rss/news", "source": "Ведомости", "category": "экономика"},
             {"url": "https://www.kommersant.ru/RSS/news.xml", "source": "Коммерсантъ", "category": "политика"},
@@ -130,15 +129,14 @@ class RealNewsParser:
                 print(f"🔍 Парсинг источника: {source['source']}")
                 feed = feedparser.parse(source["url"])
                 
-                for entry in feed.entries[:5]:  # Берем 5 последних новостей
+                for entry in feed.entries[:5]:  
                     if not db.query(NewsArticle).filter(NewsArticle.url == entry.link).first():
                         
-                        # Определяем категорию
                         summary_text = entry.summary if hasattr(entry, 'summary') else (entry.description if hasattr(entry, 'description') else entry.title)
                         category = RealNewsParser.detect_category(entry.title, summary_text)
                         
                         article = NewsArticle(
-                            title=entry.title[:200],  # Ограничиваем длину
+                            title=entry.title[:200], 
                             summary=summary_text[:500],
                             url=entry.link,
                             source=source["source"],
@@ -147,10 +145,10 @@ class RealNewsParser:
                         )
                         db.add(article)
                         added_count += 1
-                        print(f"✅ Добавлена новость: {entry.title[:50]}...")
+                        print(f" Добавлена новость: {entry.title[:50]}...")
                         
             except Exception as e:
-                print(f"❌ Ошибка парсинга {source['source']}: {e}")
+                print(f" Ошибка парсинга {source['source']}: {e}")
         
         db.commit()
         print(f"🎉 Парсинг завершен. Добавлено {added_count} новостей")
@@ -189,5 +187,5 @@ class RealNewsParser:
                 updated_count += 1
         
         db.commit()
-        print(f"🔄 Обновлено категорий: {updated_count}")
+        print(f" Обновлено категорий: {updated_count}")
         return updated_count
