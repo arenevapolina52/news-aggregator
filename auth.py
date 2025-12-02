@@ -139,7 +139,6 @@ async def get_current_user(
 
     return user
 
-
 async def get_current_active_user(
     current_user: schemas.User = Depends(get_current_user)
 ):
