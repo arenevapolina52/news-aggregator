@@ -145,10 +145,10 @@ class RealNewsParser:
                         )
                         db.add(article)
                         added_count += 1
-                        print(f" Добавлена новость: {entry.title[:50]}...")
+                        print(f"✅ Добавлена новость: {entry.title[:50]}...")
                         
             except Exception as e:
-                print(f" Ошибка парсинга {source['source']}: {e}")
+                print(f"❌ Ошибка парсинга {source['source']}: {e}")
         
         db.commit()
         print(f"🎉 Парсинг завершен. Добавлено {added_count} новостей")
@@ -187,5 +187,5 @@ class RealNewsParser:
                 updated_count += 1
         
         db.commit()
-        print(f" Обновлено категорий: {updated_count}")
+        print(f"🔄 Обновлено категорий: {updated_count}")
         return updated_count
